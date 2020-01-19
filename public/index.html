@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Deck.gl + GoogleMaps</title>
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Kanit&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAlYfhH1geS8uQgJIbZsoSJkDdurHCw6LM&callback=initMap"
+    ></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Kanit", sans-serif;
+        overflow: hidden;
+        background: black;
+        font-size: 16px;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+      }
+
+      #tooltip {
+        position: absolute;
+        z-index: 1;
+        pointer-events: none;
+        background: black;
+        color: white;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
+          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        padding: 20px;
+        margin: 20px;
+        border-radius: 5px;
+        transition: opacity 250ms ease;
+        max-width: 400px;
+        word-wrap: break-word;
+      }
+
+      #controls {
+        position: fixed;
+        bottom: 40px;
+        left: 30px;
+        display: block;
+        animation-name: dropin;
+        animation-duration: 300ms;
+        animation-timing-function: ease-out;
+        z-index: 2;
+      }
+
+      button {
+        background: #fff;
+        font-size: 1.3em;
+        opacity: 0.85;
+        border-radius: 2px;
+        cursor: pointer;
+        border: none;
+        padding: 0.5em;
+        font-family: "Kanit", sans-serif;
+        transition: transform 400ms ease-in-out;
+      }
+
+      #filters label {
+        color: #fff;
+        font-weight: bold;
+      }
+
+      #filters {
+        margin-bottom: 20px;
+      }
+
+      a,
+      a:visited {
+        color: #0985bb;
+      }
+
+      .about {
+        font-size: 0.6em;
+      }
+
+      button.enabled {
+        background: #3eba3e;
+        color: white;
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
+          0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        transition: transform 400ms ease-in-out;
+      }
+
+      #modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 9;
+      }
+
+      #modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        position: relative;
+        animation-name: dropin;
+        animation-duration: 300ms;
+        animation-timing-function: ease-out;
+      }
+      @keyframes dropin {
+        from {
+          left: -100%;
+          opacity: 0;
+        }
+        to {
+          left: 0;
+          opacity: 1;
+        }
+      }
+
+      #loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100vw;
+        flex-direction: column;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        opacity: 0.9;
+        background: black;
+        z-index: 8;
+      }
+
+      #spinner {
+        border: 16px solid #f3f3f3;
+        border-top: 16px solid #dc143c;
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 1s linear infinite;
+        opacity: 0.9;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media only screen and (max-width: 768px) {
+        body {
+          font-size: 12px;
+        }
+      }
+
+      #filters {
+        display: flex;
+        flex-direction: column;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div id="spinner"></div>
+      <h2>Loading 141,184 gun violence datapoints 🤕</h2>
+    </div>
+
+    <div id="map"></div>
+    <div id="tooltip"></div>
+    <div id="controls">
+      <div id="filters" class="enabled">
+        <label>
+          <input
+            checked
+            type="checkbox"
+            name="Drive-by"
+            value="Drive-by"
+            id="Drive-by"
+          />Drive-by
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="Home Invasion"
+            value="Home Invasion"
+            id="HomeInvasion"
+          />
+          Home Invasion
+        </label>
+        <label
+          ><input
+            type="checkbox"
+            name="Suicide"
+            value="Suicide"
+            id="Suicide"
+          />Suicide</label
+        >
+        <label
+          ><input
+            type="checkbox"
+            name="Defensive Use"
+            value="Defensive Use"
+            id="DefensiveUse"
+          />Defensive Use</label
+        ><label
+          ><input
+            type="checkbox"
+            name="Armed robbery"
+            value="Armed robbery"
+            id="Armedrobbery"
+          />Armed robbery</label
+        ><label
+          ><input
+            type="checkbox"
+            name="Drug involvement"
+            value="Drug involvement"
+            id="Druginvolvement"
+          />Drug involvement</label
+        ><label
+          ><input
+            type="checkbox"
+            name="Gang involvement"
+            value="Gang involvement"
+            id="Ganginvolvement"
+          />Gang involvement</label
+        ><label
+          ><input
+            type="checkbox"
+            name="Officer Involved"
+            value="Officer Involved"
+            id="OfficerInvolved"
+          />Officer Involved</label
+        ><label
+          ><input
+            type="checkbox"
+            name="Mass Shooting"
+            value="Mass Shooting"
+            id="MassShooting"
+          />Mass Shooting</label
+        >
+      </div>
+
+      <button
+        title="scatterplot for individual shootings"
+        id="scatter"
+        class="enabled"
+      >
+        🚨
+        <div class="about">Shootings</div>
+      </button>
+      <button title="aggregate cluster of shootings" id="heat" class="enabled">
+        🌡️
+        <div class="about">Zoom Heatmap</div>
+      </button>
+      <button title="most dangerous square miles" id="hex" class="enabled">
+        🏘️
+        <div class="about">One-mile Hexagons</div>
+      </button>
+
+      <button title="about this data vis" id="hex" onclick="toggleModal()">
+        <div class="about">About</div>
+      </button>
+    </div>
+
+    <div id="modal" onclick="toggleModal()">
+      <div id="modal-content" onclick="event.stopPropagation()">
+        <h1>U.S. Gun Violence Map</h1>
+        <p>
+          ☠️ This map contains
+          <strong>141,184 gun-related incidents</strong> ranging from Jan-2013
+          to March-2018 that caused injury or death to those involved.
+        </p>
+        <p>
+          💾
+          <a
+            href="https://www.kaggle.com/jameslko/gun-violence-data"
+            target="blank"
+            >Data Source</a
+          >. Click on data points to load the full incident reports from
+          <a href="https://www.gunviolencearchive.org/" target="blank"
+            >Gun Violence Archive</a
+          >.
+        </p>
+        <p>
+          👾 Created by
+          <a href="">Eric Owusu</a> of
+          <a href="https://bit.ly/2FXNyfz">owusu.io</a> with deck.gl and Google
+          Maps.
+        </p>
+        <hr style="border-top: 1px solid gray;" />
+        <p onclick="toggleModal()" style="cursor: pointer;">💣 Boom!</p>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

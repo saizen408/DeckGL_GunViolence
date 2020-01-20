@@ -197,7 +197,6 @@ window.initMap = () => {
         var lastLayerArr = layersArr[lastLayerIdx].props.data;
       }
 
-      console.log(layersArr);
       if (loader.parentNode && lastLayerArr.length) {
         loader.parentNode.removeChild(loader);
       }
@@ -207,65 +206,132 @@ window.initMap = () => {
   overlay.setMap(map);
 
   //1. set up listeners for each filter category
+  const filterInputs = document.querySelectorAll("input");
   const filterDriveBy = document.getElementById("Drive-by");
-  //   const filterHomeInv;
-  //   const filterSuicide;
-  //   const filterDefense;
-  //   const filterArmedRob;
-  //   const filterDrugInv;
-  //   const filterOfficerInv;
-  //   const filterMassShooting;
+  const filterHomeInv = document.getElementById("HomeInvasion");
+  const filterSuicide = document.getElementById("Suicide");
+  const filterDefense = document.getElementById("DefensiveUse");
+  const filterArmedRob = document.getElementById("Armedrobbery");
+  const filterDrugInv = document.getElementById("Druginvolvement");
+  const filterGangInv = document.getElementById("Ganginvolvement");
+  const filterOfficerInv = document.getElementById("OfficerInvolved");
+  const filterMassShooting = document.getElementById("MassShooting");
+
   //2. determine what keyword to filter each element by in "const layersArr = overlay.props.layers"
-  const getFilteredData = () => {
-    console.log("gundata:", { gundata });
-    console.log(gundata[3].categories.includes("driveby"));
+  filterInputs.forEach(input => {
+    var conditions = [];
 
-    // const newData = gundata.filter((el, idx) => {
-    //   gundata[idx].notes.includes("driveby");
-    // });
-    // console.log(newData);
-    // return newData;
-    var newData = [];
-    for (let i = 0; i < gundata.length; i++) {
-      if (gundata[i].categories !== 0) {
-        if (gundata[i].categories.toLowerCase().includes("drive-by")) {
-          newData.push(gundata[i]);
-        }
-      }
-    }
-    console.log(newData);
-    return newData;
-  };
+    input.addEventListener("change", () => {
+      const filtersArr = [
+        filterDriveBy,
+        filterHomeInv,
+        filterSuicide,
+        filterDefense,
+        filterArmedRob,
+        filterDrugInv,
+        filterGangInv,
+        filterOfficerInv,
+        filterMassShooting
+      ];
+      conditions = filtersArr.filter(filter => {
+        return filter.checked === true;
+      });
+      var conditionVals = [];
+      conditions.forEach(condition => {
+        conditionVals.push(condition.value.toLowerCase());
+      });
+      console.log("conditionVals spread: ", ...conditionVals);
 
-  filterDriveBy.addEventListener("change", () => {
-    if (filterDriveBy.checked == false) {
+      //3. filter by each conditionVal
+      const getFilteredData = gundata => {
+        let newData = [];
+        newData = gundata.filter((el, idx) => {
+          if (el.categories === 0) {
+            return false;
+          }
+
+          const incDrive =
+            conditionVals.indexOf("drive-by") !== -1
+              ? el.categories.toLowerCase().includes("drive-by")
+              : el.categories.toLowerCase().includes("~");
+          const incHome =
+            conditionVals.indexOf("home invasion") !== -1
+              ? el.categories.toLowerCase().includes("home invasion")
+              : el.categories.toLowerCase().includes("~");
+          const incSuicide =
+            conditionVals.indexOf("suicide") !== -1
+              ? el.categories.toLowerCase().includes("suicide")
+              : el.categories.toLowerCase().includes("~");
+          const incDefense =
+            conditionVals.indexOf("defensive use") !== -1
+              ? el.categories.toLowerCase().includes("defensive use")
+              : el.categories.toLowerCase().includes("~");
+          const incArmedRob =
+            conditionVals.indexOf("armed robbery") !== -1
+              ? el.categories.toLowerCase().includes("armed robbery")
+              : el.categories.toLowerCase().includes("~");
+          const incDrug =
+            conditionVals.indexOf("drug involvement") !== -1
+              ? el.categories.toLowerCase().includes("drug involvement")
+              : el.categories.toLowerCase().includes("~");
+          const incGang =
+            conditionVals.indexOf("gang involvement") !== -1
+              ? el.categories.toLowerCase().includes("gang involvement")
+              : el.categories.toLowerCase().includes("~");
+          const incOfficer =
+            conditionVals.indexOf("officer involved") !== -1
+              ? el.categories.toLowerCase().includes("officer involved")
+              : el.categories.toLowerCase().includes("~");
+          const incMass =
+            conditionVals.indexOf("mass shooting") !== -1
+              ? el.categories.toLowerCase().includes("mass shooting")
+              : el.categories.toLowerCase().includes("~");
+
+          return (
+            incDrive ||
+            incHome ||
+            incSuicide ||
+            incDefense ||
+            incArmedRob ||
+            incDrug ||
+            incGang ||
+            incOfficer ||
+            incMass
+          );
+        });
+        console.log("newData: ", newData);
+
+        return newData;
+      };
+
+      const renderData = getFilteredData(gundata);
       overlay.setProps({
         layers: [
           scatterVisible
             ? new ScatterplotLayer({
                 ...defaultScatterObj,
-                data: getFilteredData(gundata),
+                data: renderData,
                 updateTriggers: {
                   getPosition: d => [d.longitude, d.latitude],
                   getFillColor: d =>
                     d.n_killed > 0 ? [200, 0, 40, 150] : [255, 140, 0, 100]
                 }
               })
-            : null, //do nothing,
+            : null,
           heatVisible
             ? new HeatmapLayer({
                 ...defaultHeatObj,
-                data: getFilteredData(gundata),
+                data: renderData,
                 updateTriggers: {
                   getPosition: d => [d.longitude, d.latitude],
                   getWeight: d => d.n_killed + d.n_injured * 0.5
                 }
               })
-            : null, //do nothing,
+            : null,
           hexVisible
             ? new HexagonLayer({
                 ...defaultHexObj,
-                data: getFilteredData(gundata),
+                data: renderData,
                 updateTriggers: {
                   getPosition: d => [d.longitude, d.latitude],
                   getElevationWeight: d => d.n_killed * 2 + d.n_injured
@@ -274,27 +340,17 @@ window.initMap = () => {
             : null
         ]
       });
-    } else if (filterDriveBy.checked == true) {
-      overlay.setProps({
-        layers: [
-          scatterVisible ? scatterplot() : null,
-          heatVisible ? heatmap() : null,
-          hexVisible ? hexagon() : null
-        ]
-      });
-    }
+    });
   });
 
-  //3. determine which array method returns the correct filter data most efficiently
-  //Ensure that all layers receive equal filtering
-
+  //filter by scatter plot
   scatterBtn.addEventListener("click", () => {
     if (scatterVisible) {
       overlay.setProps({
         layers: [heatVisible ? heatmap() : null, hexVisible ? hexagon() : null]
       });
       scatterVisible = false;
-      console.log("scatterVisible: ", scatterVisible);
+      // console.log("scatterVisible: ", scatterVisible);
     } else if (!scatterVisible) {
       overlay.setProps({
         layers: [
@@ -304,11 +360,12 @@ window.initMap = () => {
         ]
       });
       scatterVisible = true;
-      console.log("scatterVisible: ", scatterVisible);
+      // console.log("scatterVisible: ", scatterVisible);
     }
     scatterBtn.classList.toggle("enabled");
   });
 
+  //filter by heat plot
   heatBtn.addEventListener("click", () => {
     if (heatVisible) {
       overlay.setProps({
@@ -318,7 +375,7 @@ window.initMap = () => {
         ]
       });
       heatVisible = false;
-      console.log("heatVisible: ", heatVisible);
+      // console.log("heatVisible: ", heatVisible);
     } else if (!heatVisible) {
       overlay.setProps({
         layers: [
@@ -328,11 +385,12 @@ window.initMap = () => {
         ]
       });
       heatVisible = true;
-      console.log("heatVisible: ", heatVisible);
+      // console.log("heatVisible: ", heatVisible);
     }
     heatBtn.classList.toggle("enabled");
   });
 
+  //filter by hex plot
   hexBtn.addEventListener("click", () => {
     if (hexVisible) {
       overlay.setProps({
@@ -342,7 +400,7 @@ window.initMap = () => {
         ]
       });
       hexVisible = false;
-      console.log("hexVisible: ", hexVisible);
+      // console.log("hexVisible: ", hexVisible);
     } else if (!hexVisible) {
       overlay.setProps({
         layers: [
@@ -352,7 +410,7 @@ window.initMap = () => {
         ]
       });
       hexVisible = true;
-      console.log("hexVisible: ", hexVisible);
+      // console.log("hexVisible: ", hexVisible);
     }
     hexBtn.classList.toggle("enabled");
   });

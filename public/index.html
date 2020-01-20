@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Deck.gl + GoogleMaps</title>
-
     <link
       href="https://fonts.googleapis.com/css?family=Kanit&display=swap"
       rel="stylesheet"
@@ -35,7 +34,7 @@
         z-index: 1;
         pointer-events: none;
         background: black;
-        color: white;
+        color: #a7a7a7;
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
           0 6px 20px 0 rgba(0, 0, 0, 0.19);
         padding: 20px;
@@ -58,9 +57,13 @@
       }
 
       button {
-        background: #fff;
+        background: linear-gradient(
+          188deg,
+          rgba(253, 248, 251, 1) 32%,
+          rgba(235, 237, 238, 1) 100%
+        );
         font-size: 1.3em;
-        opacity: 0.85;
+        opacity: 0.6;
         border-radius: 2px;
         cursor: pointer;
         border: none;
@@ -69,9 +72,17 @@
         transition: transform 400ms ease-in-out;
       }
 
+      button:focus {
+        outline: 0;
+      }
+
       #filters label {
         color: #fff;
         font-weight: bold;
+      }
+
+      input:checked {
+        color: #a7a7a7;
       }
 
       #filters {
@@ -89,6 +100,7 @@
 
       button.enabled {
         background: #3eba3e;
+        opacity: 0.8;
         color: white;
         transform: translateY(-5px);
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2),
@@ -96,7 +108,7 @@
         transition: transform 400ms ease-in-out;
       }
 
-      #modal {
+      #close-modal {
         display: none;
         position: fixed;
         z-index: 1;
@@ -177,7 +189,6 @@
       #filters {
         display: flex;
         flex-direction: column;
-        color: white;
       }
     </style>
   </head>
@@ -207,9 +218,8 @@
             name="Home Invasion"
             value="Home Invasion"
             id="HomeInvasion"
-          />
-          Home Invasion
-        </label>
+          />Home Invasion</label
+        >
         <label
           ><input
             checked
@@ -287,12 +297,12 @@
         <div class="about">One-mile Hexagons</div>
       </button>
 
-      <button title="about this data vis" id="hex" onclick="toggleModal()">
+      <button title="about this data vis" id="open-modal">
         <div class="about">About</div>
       </button>
     </div>
 
-    <div id="modal" onclick="toggleModal()">
+    <div id="close-modal">
       <div id="modal-content" onclick="event.stopPropagation()">
         <h1>U.S. Gun Violence Map</h1>
         <p>
@@ -317,8 +327,6 @@
           <a href="https://bit.ly/2FXNyfz">owusu.io</a> with deck.gl and Google
           Maps.
         </p>
-        <hr style="border-top: 1px solid gray;" />
-        <p onclick="toggleModal()" style="cursor: pointer;">💣 Boom!</p>
       </div>
     </div>
     <script src="main.js"></script>

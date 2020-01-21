@@ -105,7 +105,6 @@ const hexagon = () =>
     lowerPercentile: 50
   });
 
-function initMap() {}
 //inititialize google maps and layers
 window.initMap = () => {
   var scatterVisible = true,

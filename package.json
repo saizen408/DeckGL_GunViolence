@@ -1,12 +1,16 @@
 {
   "name": "deckGL",
+  "homepage": "https://saizen408.github.io/DeckGL_GunViolence",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "build:dev": "webpack --output-path ./public",
     "build:prod": "webpack -p --env production",
-    "start": "webpack-dev-server --content-base ./public --output-path ./public --hot"
+    "start": "webpack-dev-server --content-base ./public --output-path ./public --hot",
+    "heroku-postbuild": "npm run build:prod"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +35,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "1.5.2",
     "babel-preset-react": "6.24.1",
-    "extract-text-webpack-plugin": "^3.0.0"
+    "extract-text-webpack-plugin": "^3.0.0",
+    "gh-pages": "^2.2.0"
   }
 }

@@ -9,7 +9,7 @@
     "deploy": "gh-pages -d build",
     "build:dev": "webpack --output-path ./public",
     "build:prod": "webpack -p --env production",
-    "start": "webpack-dev-server --content-base ./public --output-path ./public --hot",
+    "start": "node server/server.js",
     "heroku-postbuild": "npm run build:prod"
   },
   "keywords": [],

@@ -107,6 +107,7 @@ const hexagon = () =>
 
 //inititialize google maps and layers
 window.initMap = () => {
+  console.log("inititializing map...");
   var scatterVisible = true,
     heatVisible = true,
     hexVisible = true;

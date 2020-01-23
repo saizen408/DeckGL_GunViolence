@@ -3,7 +3,6 @@ import { HexagonLayer } from "@deck.gl/aggregation-layers";
 import { ScatterplotLayer } from "@deck.gl/layers";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import mapStyles from "./map-styles";
-import gundata from "../jsonFiles/gundata.json";
 import { defaultScatterObj, defaultHeatObj, defaultHexObj } from "./layers";
 import getFilteredData from "./getFilteredData";
 import {
@@ -16,6 +15,16 @@ import {
   loader,
   filtersArr
 } from "./selectors";
+
+const getGunData = async () => {
+  const response = await fetch(
+    "https://firebasestorage.googleapis.com/v0/b/deckgldatamap.appspot.com/o/gundata.json?alt=media&token=113ee5d6-c816-47d5-8000-fcbf00997f13"
+  );
+  const data = await response.json();
+  return data;
+};
+
+export const gundata = getGunData();
 
 const strCount = (count, type) => {
   let str = "";
@@ -159,7 +168,7 @@ window.initMap = () => {
       });
 
       //3. filter by each conditionVal
-      const renderData = getFilteredData(gundata, conditionVals);
+      const renderData = getFilteredData(conditionVals);
       overlay.setProps({
         layers: [
           scatterVisible

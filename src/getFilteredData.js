@@ -1,5 +1,15 @@
-const getFilteredData = (gundata, conditionVals) => {
+const getFilteredData = async conditionVals => {
   let newData = [];
+
+  const getGunData = async () => {
+    const response = await fetch(
+      "https://firebasestorage.googleapis.com/v0/b/deckgldatamap.appspot.com/o/gundata.json?alt=media&token=113ee5d6-c816-47d5-8000-fcbf00997f13"
+    );
+    const data = await response.json();
+    return data;
+  };
+
+  const gundata = await getGunData();
 
   newData = gundata.filter(el => {
     if (el.categories === 0) {
